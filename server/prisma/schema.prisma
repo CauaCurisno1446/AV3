@@ -1,13 +1,79 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
-datasource db {
-  provider = "postgresql"
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User{
+  id        Int      @id @default(autoincrement())
+  nome      String
+  telefone  Telefone[]
+  endereco  Endereco[]
+  usuario   String   @unique
+  senha     String
+  role      String   @default("OPERARIO")
+  etapas    Etapa[]   @relation("EtapaFuncionarios")
+  createdAt DateTime @default(now())
+}
+
+model Aeronave{
+  id          Int      @id @default(autoincrement())
+  modelo      String   @default("COMERCIAL")
+  capacidade  String
+  alcance     String
+  etapas      Etapa[]
+  pecas       Peca[]
+  testes      Testes[]
+  createdAt   DateTime @default(now())
+}
+
+model Testes{
+  id        Int      @id @default(autoincrement())
+  aerodinamico String @default("REPROVADO")
+  eletrico     String @default("REPROVADO")
+  hidraulico   String @default("REPROVADO")
+  aeronaveid   Int
+  aeronave     Aeronave @relation(fields: [aeronaveid], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model Telefone{
+  id        Int      @id @default(autoincrement())
+  numero    String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Endereco{
+  id        Int      @id @default(autoincrement())
+  rua       String
+  cidade    String
+  estado    String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Etapa{
+  id            Int      @id @default(autoincrement())
+  nome          String
+  prazo         DateTime
+  status        String   @default("EM_ANDAMENTO")
+  funcionarios  User[]   @relation("EtapaFuncionarios")
+  aeronaveid    Int
+  aeronave      Aeronave @relation(fields: [aeronaveid], references: [id])
+  createdAt     DateTime @default(now())
+}
+
+model Peca{
+  id          Int      @id @default(autoincrement())
+  nome        String
+  tipo        String 
+  fornecedor  String
+  status      String   @default("EM_TRANSITO")
+  aeronaveid  Int
+  aeronave    Aeronave @relation(fields: [aeronaveid], references: [id])
+  createdAt   DateTime @default(now())
 }
