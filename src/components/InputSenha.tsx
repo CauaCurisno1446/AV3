@@ -7,9 +7,12 @@ type InputSenhaProps = {
   name?: string;
   id?: string;
   placeholder?: string;
+  required?: boolean;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  value?: string;
 };
 
-function InputSenha({ label, className, name, id, placeholder }: InputSenhaProps) {
+function InputSenha({ label, className, name, id, placeholder, required, value, onChange }: InputSenhaProps) {
   const [verSenha, setVerSenha] = useState(false);
 
   const styleInput =
@@ -19,7 +22,16 @@ function InputSenha({ label, className, name, id, placeholder }: InputSenhaProps
     <div className="flex flex-col gap-1">
       <label className="text-sm font-medium text-slate-600">{label}</label>
       <div className="relative">
-        <input type={verSenha ? "text" : "password"} placeholder={placeholder} className={`${styleInput} ${className} w-full pr-10`} name={name} id={id} />
+        <input
+          type={verSenha ? "text" : "password"}
+          placeholder={placeholder}
+          className={`${styleInput} ${className} w-full pr-10`}
+          name={name}
+          id={id}
+          required={required}
+          value={value}
+          onChange={onChange}
+        />
         <button
           type="button"
           onClick={() => setVerSenha(!verSenha)}

@@ -1,78 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model aeronave {
+  id         Int      @id @default(autoincrement())
+  modelo     String   @default("COMERCIAL")
+  capacidade String
+  alcance    String
+  createdAt  DateTime @default(now())
+  etapa      etapa[]
+  testes     testes[]
+  peca       peca[]   @relation("aeronavepecas")
 }
 
-model User{
+model etapa {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  prazo      DateTime
+  status     String   @default("EM_ANDAMENTO")
+  aeronaveid Int
+  createdAt  DateTime @default(now())
+  aeronave   aeronave @relation(fields: [aeronaveid], references: [id], map: "Etapa_aeronaveid_fkey")
+  user       user[]   @relation("etapafuncionarios")
+
+  @@index([aeronaveid], map: "Etapa_aeronaveid_fkey")
+}
+
+model peca {
+  id         Int        @id @default(autoincrement())
+  nome       String
+  tipo       String
+  fornecedor String
+  status     String     @default("EM_TRANSITO")
+  createdAt  DateTime   @default(now())
+  aeronave   aeronave[] @relation("aeronavepecas")
+}
+
+model testes {
+  id           Int      @id @default(autoincrement())
+  aerodinamico String   @default("REPROVADO")
+  eletrico     String   @default("REPROVADO")
+  hidraulico   String   @default("REPROVADO")
+  aeronaveid   Int
+  createdAt    DateTime @default(now())
+  aeronave     aeronave @relation(fields: [aeronaveid], references: [id], map: "Testes_aeronaveid_fkey")
+
+  @@index([aeronaveid], map: "Testes_aeronaveid_fkey")
+}
+
+model user {
   id        Int      @id @default(autoincrement())
   nome      String
-  telefone  Telefone[]
-  endereco  Endereco[]
-  usuario   String   @unique
+  usuario   String   @unique(map: "User_usuario_key")
   senha     String
   role      String   @default("OPERARIO")
-  etapas    Etapa[]   @relation("EtapaFuncionarios")
   createdAt DateTime @default(now())
-}
-
-model Aeronave{
-  id          Int      @id @default(autoincrement())
-  modelo      String   @default("COMERCIAL")
-  capacidade  String
-  alcance     String
-  etapas      Etapa[]
-  pecas       Peca[]   @relation("AeronavePecas")
-  testes      Testes[]
-  createdAt   DateTime @default(now())
-}
-
-model Testes{
-  id        Int      @id @default(autoincrement())
-  aerodinamico String @default("REPROVADO")
-  eletrico     String @default("REPROVADO")
-  hidraulico   String @default("REPROVADO")
-  aeronaveid   Int
-  aeronave     Aeronave @relation(fields: [aeronaveid], references: [id])
-  createdAt    DateTime @default(now())
-}
-
-model Telefone{
-  id        Int      @id @default(autoincrement())
-  numero    String
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Endereco{
-  id        Int      @id @default(autoincrement())
-  rua       String
-  cidade    String
-  estado    String
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Etapa{
-  id            Int      @id @default(autoincrement())
-  nome          String
-  prazo         DateTime
-  status        String   @default("EM_ANDAMENTO")
-  funcionarios  User[]   @relation("EtapaFuncionarios")
-  aeronaveid    Int
-  aeronave      Aeronave @relation(fields: [aeronaveid], references: [id])
-  createdAt     DateTime @default(now())
-}
-
-model Peca{
-  id          Int      @id @default(autoincrement())
-  nome        String
-  tipo        String 
-  fornecedor  String
-  status      String   @default("EM_TRANSITO")
-  aeronaves   Aeronave[] @relation("AeronavePecas")
-  createdAt   DateTime @default(now())
+  endereco  String
+  telefone  String   @unique(map: "User_telefone_key")
+  etapa     etapa[]  @relation("etapafuncionarios")
 }

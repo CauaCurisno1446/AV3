@@ -7,7 +7,7 @@ import etapaRoutes from "./etapaRoutes";
 
 const router = Router();
 
-router.use("/usuarios", userRoutes);
+router.use("/funcionarios", userRoutes);
 router.use("/aeronaves", aeroRoutes);
 router.use("/pecas", pecaRoutes);
 router.use("/etapas", etapaRoutes);

@@ -5,7 +5,11 @@ const prisma = new PrismaClient();
 
 export async function listarUsuarios(req: Request, res: Response) {
   try {
-    const usuarios = await prisma.user.findMany();
+    const usuarios = await prisma.user.findMany({
+      include: {
+        etapa: true,
+      },
+    });
     res.json(usuarios);
   } catch (error) {
     console.error(error);
@@ -15,13 +19,36 @@ export async function listarUsuarios(req: Request, res: Response) {
 
 export async function criarUsuario(req: Request, res: Response) {
   try {
-    const usuario = await prisma.user.create({
-      data: req.body,
+    const { nome, telefone, endereco, usuario, role, senha, etapas } = req.body;
+
+    const funcionario = await prisma.user.create({
+      data: {
+        nome,
+        telefone,
+        endereco,
+        usuario,
+        role,
+        senha,
+
+        etapa: {
+          connect: (etapas ?? []).map((id: number) => ({
+            id,
+          })),
+        },
+      },
+
+      include: {
+        etapa: true,
+      },
     });
-    res.json(usuario);
+
+    res.json(funcionario);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao criar usuário" });
+
+    res.status(500).json({
+      error: "Erro ao criar funcionário",
+    });
   }
 }
 
@@ -53,9 +80,40 @@ export async function atualizarUsuario(req: Request<{ id: string }>, res: Respon
     res.status(500).json({ error: "Erro ao atualizar usuário" });
   }
 }
+
+export async function validarUsuario(req: Request, res: Response) {
+  try {
+    const { usuario, telefone } = req.body;
+
+    const usuarioExiste = await prisma.user.findFirst({
+      where: {
+        usuario,
+      },
+    });
+
+    const telefoneExiste = await prisma.user.findFirst({
+      where: {
+        telefone,
+      },
+    });
+
+    res.json({
+      usuarioDisponivel: !usuarioExiste,
+      telefoneDisponivel: !telefoneExiste,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Erro ao validar funcionário",
+    });
+  }
+}
+
 export default {
   listarUsuarios,
   criarUsuario,
   deletarUsuario,
   atualizarUsuario,
+  validarUsuario,
 };
