@@ -25,7 +25,7 @@ model Aeronave{
   capacidade  String
   alcance     String
   etapas      Etapa[]
-  pecas       Peca[]
+  pecas       Peca[]   @relation("AeronavePecas")
   testes      Testes[]
   createdAt   DateTime @default(now())
 }
@@ -73,7 +73,6 @@ model Peca{
   tipo        String 
   fornecedor  String
   status      String   @default("EM_TRANSITO")
-  aeronaveid  Int
-  aeronave    Aeronave @relation(fields: [aeronaveid], references: [id])
+  aeronaves   Aeronave[] @relation("AeronavePecas")
   createdAt   DateTime @default(now())
 }

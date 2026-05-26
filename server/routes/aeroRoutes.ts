@@ -4,9 +4,9 @@ import { listarAeronaves, criarAeronave, deletarAeronave, atualizarAeronave } fr
 
 const router = Router();
 
-router.get("/listar", listarAeronaves);
-router.post("/criar", criarAeronave);
-router.put("/atualizar/:id", atualizarAeronave);
-router.delete("/deletar/:id", deletarAeronave);
+router.get("/", listarAeronaves);
+router.post("/", criarAeronave);
+router.put("/:id", atualizarAeronave);
+router.delete("/:id", deletarAeronave);
 
 export default router;

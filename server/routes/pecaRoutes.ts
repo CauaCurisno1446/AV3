@@ -4,9 +4,9 @@ import { listarPecas, criarPeca, atualizarPeca, deletarPeca } from "../controlle
 
 const router = Router();
 
-router.get("/listar", listarPecas);
-router.post("/criar", criarPeca);
-router.put("/atualizar/:id", atualizarPeca);
-router.delete("/deletar/:id", deletarPeca);
+router.get("/", listarPecas);
+router.post("/", criarPeca);
+router.put("/:id", atualizarPeca);
+router.delete("/:id", deletarPeca);
 
 export default router;

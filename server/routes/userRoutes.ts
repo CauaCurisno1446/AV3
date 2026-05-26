@@ -4,9 +4,9 @@ import { listarUsuarios, criarUsuario, deletarUsuario, atualizarUsuario } from "
 
 const router = Router();
 
-router.get("/listar", listarUsuarios);
-router.post("/criar", criarUsuario);
-router.put("/atualizar/:id", atualizarUsuario);
-router.delete("/deletar/:id", deletarUsuario);
+router.get("/", listarUsuarios);
+router.post("/", criarUsuario);
+router.put("/:id", atualizarUsuario);
+router.delete("/:id", deletarUsuario);
 
 export default router;

@@ -4,9 +4,9 @@ import { listarEtapas, criarEtapa, deletarEtapa, atualizarEtapa } from "../contr
 
 const router = Router();
 
-router.get("/listar", listarEtapas);
-router.post("/criar", criarEtapa);
-router.put("/atualizar/:id", atualizarEtapa);
-router.delete("/deletar/:id", deletarEtapa);
+router.get("/", listarEtapas);
+router.post("/", criarEtapa);
+router.put("/:id", atualizarEtapa);
+router.delete("/:id", deletarEtapa);
 
 export default router;
