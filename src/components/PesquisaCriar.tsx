@@ -14,7 +14,7 @@ function PesquisaCriar({ placeholder, busca, setBusca, onCriar }: Props) {
         <Search size={16} />
         <input
           type="text"
-          placeholder={`Buscar ${placeholder.toLowerCase()}...`}
+          placeholder={placeholder}
           className="bg-transparent focus:outline-none w-full text-slate-700"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}

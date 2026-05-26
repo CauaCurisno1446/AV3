@@ -314,11 +314,18 @@ function Aeronaves() {
                   <p className="text-sm font-medium text-slate-500 mt-2">Detalhes do registro</p>
                 </div>
 
-                <div className="py-6 flex-1 flex flex-col gap-4">
-                  {[`Capacidade: ${selecionada.capacidade}`, `Alcance: ${selecionada.alcance}`].map((dado, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></div>
-                      <span className="text-base text-slate-700 leading-relaxed">{dado}</span>
+                <div className="py-6 flex-1 flex flex-col gap-3">
+                  {[
+                    { label: "Capacidade (passageiros)", valor: selecionada.capacidade },
+                    { label: "Alcance (km)", valor: selecionada.alcance },
+                  ].map(({ label, valor }) => (
+                    <div
+                      key={label}
+                      className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
+                      <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                        {label}
+                      </span>
+                      <span className="text-sm font-medium text-slate-700">{valor}</span>
                     </div>
                   ))}
                 </div>

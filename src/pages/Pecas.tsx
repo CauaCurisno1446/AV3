@@ -19,6 +19,12 @@ type Peca = {
   tipo: string;
   fornecedor: string;
   status: string;
+  aeronaves: Aeronave[];
+};
+
+type Aeronave = {
+  id: number;
+  modelo: string;
 };
 
 function Pecas() {
@@ -33,16 +39,25 @@ function Pecas() {
   const [tipo, setTipo] = useState("Importada");
   const [fornecedor, setFornecedor] = useState("");
   const [status, setStatus] = useState("Pronta");
+  const [associarAeronave, setAssociarAeronave] = useState<Aeronave[]>([]);
+  const [aeronavesSelecionadas, setAeronavesSelecionadas] = useState<number[]>([]);
 
   // campos do modal editar
   const [nomeEditar, setNomeEditar] = useState("");
   const [tipoEditar, setTipoEditar] = useState("Importada");
   const [fornecedorEditar, setFornecedorEditar] = useState("");
   const [statusEditar, setStatusEditar] = useState("Pronta");
+  const [aeronavesEditar, setAeronavesEditar] = useState<number[]>([]);
 
   useEffect(() => {
     api.get("/pecas").then((res) => {
       setPecas(res.data);
+    });
+  }, []);
+
+  useEffect(() => {
+    api.get("/aeronaves").then((res) => {
+      setAssociarAeronave(res.data);
     });
   }, []);
 
@@ -52,12 +67,15 @@ function Pecas() {
     setTipoEditar(selecionada.tipo);
     setFornecedorEditar(selecionada.fornecedor);
     setStatusEditar(selecionada.status);
+
+    setAeronavesEditar(selecionada.aeronaves.map((a) => a.id));
+
     modalEditar.abrir();
   }
 
   async function handleCriar() {
     try {
-      const res = await api.post("/pecas", { nome, tipo, fornecedor, status });
+      const res = await api.post("/pecas", { nome, tipo, fornecedor, status, aeronaves: aeronavesSelecionadas });
       setPecas((prev) => [...prev, res.data]);
       modalCriar.fechar();
       setNome("");
@@ -77,6 +95,7 @@ function Pecas() {
         tipo: tipoEditar,
         fornecedor: fornecedorEditar,
         status: statusEditar,
+        aeronaves: aeronavesEditar,
       });
       setPecas((prev) => prev.map((p) => (p.id === selecionada.id ? res.data : p)));
       setSelecionada(res.data);
@@ -102,53 +121,69 @@ function Pecas() {
     <div className="min-h-screen bg-[var(--fundo)] text-slate-800 font-sans">
       {modalCriar.aberto && (
         <Modal titulo="Nova Peça" onClose={modalCriar.fechar}>
-          <div className="flex flex-col gap-4">
-            <InputTexto
-              label="Nome"
-              placeholder="Ex: Peça 321"
-              name="nome"
-              id="nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-            />
-            <InputSelect
-              label="Tipo"
-              options={["Importada", "Nacional"]}
-              name="tipo"
-              id="tipo"
-              value={tipo}
-              onChange={(e) => setTipo(e.target.value)}
-            />
-            <InputTexto
-              label="Fornecedor"
-              placeholder="Ex: Embraer"
-              name="fornecedor"
-              id="fornecedor"
-              value={fornecedor}
-              onChange={(e) => setFornecedor(e.target.value)}
-            />
-            <InputSelect
-              label="Status"
-              options={["Pronta", "Em Trânsito", "Cancelada"]}
-              name="status"
-              id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            />
-            <InputCheckBox label="Associar a Aeronave" options={[]} />
-          </div>
-          <div className="flex justify-end gap-3 pt-1">
-            <button
-              onClick={modalCriar.fechar}
-              className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
-              Cancelar
-            </button>
-            <button
-              onClick={handleCriar}
-              className="px-5 py-2 text-sm bg-[var(--azul-escuro)] hover:bg-[var(--azul)] text-white rounded-lg transition-colors cursor-pointer">
-              Salvar
-            </button>
-          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleCriar();
+            }}>
+            <div className="flex flex-col gap-4">
+              <InputTexto
+                label="Nome"
+                placeholder="Ex: Peça 321"
+                name="nome"
+                id="nome"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                required={true}
+              />
+              <InputSelect
+                label="Tipo"
+                options={["Importada", "Nacional"]}
+                name="tipo"
+                id="tipo"
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value)}
+              />
+              <InputTexto
+                label="Fornecedor"
+                placeholder="Ex: Embraer"
+                name="fornecedor"
+                id="fornecedor"
+                value={fornecedor}
+                onChange={(e) => setFornecedor(e.target.value)}
+                required={true}
+              />
+              <InputSelect
+                label="Status"
+                options={["Pronta", "Em Trânsito", "Cancelada"]}
+                name="status"
+                id="status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              />
+              <InputCheckBox
+                label="Associar a Aeronave"
+                options={associarAeronave.map((aeronave) => ({
+                  id: aeronave.id.toString(),
+                  label: aeronave.modelo,
+                  value: aeronave.id,
+                }))}
+                onChange={(values) => setAeronavesSelecionadas(values as number[])}
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-1">
+              <button
+                onClick={modalCriar.fechar}
+                className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 text-sm bg-[var(--azul-escuro)] hover:bg-[var(--azul)] text-white rounded-lg transition-colors cursor-pointer">
+                Salvar
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
 
@@ -187,7 +222,16 @@ function Pecas() {
               value={statusEditar}
               onChange={(e) => setStatusEditar(e.target.value)}
             />
-            <InputCheckBox label="Associar a Aeronave" options={[]} />
+            <InputCheckBox
+              label="Associar a Aeronave"
+              options={associarAeronave.map((aeronave) => ({
+                id: aeronave.id.toString(),
+                label: aeronave.modelo,
+                value: aeronave.id,
+              }))}
+              selectedValues={aeronavesEditar}
+              onChange={(values) => setAeronavesEditar(values as number[])}
+            />
           </div>
           <div className="flex justify-end gap-3 pt-1">
             <button
@@ -220,7 +264,7 @@ function Pecas() {
               itemSelecionado={selecionada}
               onSelecionar={setSelecionada}
               extrairId={(peca) => peca.id}
-              extrairTexto={(peca) => `ID: ${peca.id} - ${peca.nome}`}
+              extrairTexto={(peca) => `${peca.nome}`}
               mensagemVazia="Nenhuma peça encontrada."
             />
           </div>
@@ -230,22 +274,27 @@ function Pecas() {
               <div className="flex flex-col h-full bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
                 <div className="pb-5 border-b border-slate-100">
                   <h2 className="text-2xl font-bold text-slate-800 tracking-tight leading-none">{selecionada.nome}</h2>
-                  <p className="text-sm font-medium text-slate-500 mt-2">Detalhes do registro</p>
+                  <p className="text-sm font-medium text-slate-400 mt-1.5 uppercase tracking-wider">
+                    Detalhes do registro
+                  </p>
                 </div>
 
-                <div className="py-6 flex-1 flex flex-col gap-4">
+                <div className="py-6 flex-1 flex flex-col gap-3">
                   {[
-                    `Tipo: ${selecionada.tipo}`,
-                    `Fornecedor: ${selecionada.fornecedor}`,
-                    `Status: ${selecionada.status}`,
-                  ].map((dado, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></div>
-                      <span className="text-base text-slate-700 leading-relaxed">{dado}</span>
+                    { label: "Tipo", valor: selecionada.tipo },
+                    { label: "Fornecedor", valor: selecionada.fornecedor },
+                    { label: "Status", valor: selecionada.status },
+                  ].map(({ label, valor }) => (
+                    <div
+                      key={label}
+                      className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
+                      <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                        {label}
+                      </span>
+                      <span className="text-sm font-medium text-slate-700">{valor}</span>
                     </div>
                   ))}
                 </div>
-
                 <div className="pt-4 flex items-center gap-3 mt-auto">
                   <button
                     onClick={abrirModalEditar}

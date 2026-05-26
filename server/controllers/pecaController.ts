@@ -5,7 +5,12 @@ const prisma = new PrismaClient();
 
 export async function listarPecas(req: Request, res: Response) {
   try {
-    const pecas = await prisma.peca.findMany();
+    const pecas = await prisma.peca.findMany({
+      include: {
+        aeronaves: true,
+      },
+    });
+
     res.json(pecas);
   } catch (error) {
     console.error(error);
@@ -15,9 +20,27 @@ export async function listarPecas(req: Request, res: Response) {
 
 export async function criarPeca(req: Request, res: Response) {
   try {
+    const { nome, tipo, fornecedor, status, aeronaves } = req.body;
+
     const peca = await prisma.peca.create({
-      data: req.body,
+      data: {
+        nome,
+        tipo,
+        fornecedor,
+        status,
+
+        aeronaves: {
+          connect: aeronaves.map((id: number) => ({
+            id,
+          })),
+        },
+      },
+
+      include: {
+        aeronaves: true,
+      },
     });
+
     res.json(peca);
   } catch (error) {
     console.error(error);
@@ -39,18 +62,40 @@ export async function deletarPeca(req: Request<{ id: string }>, res: Response) {
   }
 }
 
-export async function atualizarPeca(req: Request<{ id: string }>, res: Response) {
+export async function atualizarPeca(req: Request, res: Response) {
   try {
+    const id = Number(req.params.id);
+
+    const { nome, tipo, fornecedor, status, aeronaves } = req.body;
+
     const peca = await prisma.peca.update({
-      where: {
-        id: parseInt(req.params.id),
+      where: { id },
+
+      data: {
+        nome,
+        tipo,
+        fornecedor,
+        status,
+
+        aeronaves: {
+          set: (aeronaves ?? []).map((id: number) => ({
+            id,
+          })),
+        },
       },
-      data: req.body,
+
+      include: {
+        aeronaves: true,
+      },
     });
+
     res.json(peca);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao atualizar peça" });
+
+    res.status(500).json({
+      error: "Erro ao atualizar peça",
+    });
   }
 }
 
