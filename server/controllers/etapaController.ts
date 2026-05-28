@@ -5,7 +5,12 @@ const prisma = new PrismaClient();
 
 export async function listarEtapas(req: Request, res: Response) {
   try {
-    const etapas = await prisma.etapa.findMany();
+    const etapas = await prisma.etapa.findMany({
+      include: {
+        aeronave: true,
+        funcionarios: true, // funcionarios
+      },
+    });
     res.json(etapas);
   } catch (error) {
     console.error(error);
@@ -15,13 +20,40 @@ export async function listarEtapas(req: Request, res: Response) {
 
 export async function criarEtapa(req: Request, res: Response) {
   try {
+    const { nome, prazo, status, funcionarios, aeronave } = req.body;
+
     const etapa = await prisma.etapa.create({
-      data: req.body,
+      data: {
+        nome,
+        prazo: new Date(prazo),
+        status,
+
+        aeronave: {
+          connect: {
+            id: Number(aeronave),
+          },
+        },
+
+        funcionarios: {
+          connect: funcionarios.map((id: number) => ({
+            id,
+          })),
+        },
+      },
+
+      include: {
+        aeronave: true,
+        funcionarios: true,
+      },
     });
+
     res.json(etapa);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao criar etapa" });
+
+    res.status(500).json({
+      error: "Erro ao criar etapa",
+    });
   }
 }
 
@@ -41,16 +73,44 @@ export async function deletarEtapa(req: Request<{ id: string }>, res: Response) 
 
 export async function atualizarEtapa(req: Request<{ id: string }>, res: Response) {
   try {
+    const { nome, prazo, status, funcionarios, aeronave } = req.body;
+
     const etapa = await prisma.etapa.update({
       where: {
-        id: parseInt(req.params.id),
+        id: Number(req.params.id),
       },
-      data: req.body,
+
+      data: {
+        nome,
+        prazo: new Date(prazo),
+        status,
+
+        aeronave: {
+          connect: {
+            id: Number(aeronave),
+          },
+        },
+
+        funcionarios: {
+          set: funcionarios.map((id: number) => ({
+            id,
+          })),
+        },
+      },
+
+      include: {
+        aeronave: true,
+        funcionarios: true,
+      },
     });
+
     res.json(etapa);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Erro ao atualizar etapa" });
+
+    res.status(500).json({
+      error: "Erro ao atualizar etapa",
+    });
   }
 }
 

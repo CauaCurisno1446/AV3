@@ -7,7 +7,7 @@ export async function listarUsuarios(req: Request, res: Response) {
   try {
     const usuarios = await prisma.user.findMany({
       include: {
-        etapa: true,
+        etapas: true,
       },
     });
     res.json(usuarios);
@@ -30,7 +30,7 @@ export async function criarUsuario(req: Request, res: Response) {
         role,
         senha,
 
-        etapa: {
+        etapas: {
           connect: (etapas ?? []).map((id: number) => ({
             id,
           })),
@@ -38,7 +38,7 @@ export async function criarUsuario(req: Request, res: Response) {
       },
 
       include: {
-        etapa: true,
+        etapas: true,
       },
     });
 
