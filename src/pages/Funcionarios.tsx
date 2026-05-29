@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useToast } from "../contexts/ToastContext";
+import { useAuth } from "../contexts/AuthContext";
 import { SquarePen, Trash2, MousePointerClick } from "lucide-react";
 import funcFoto from "../assets/img/funcionarios.jpg";
 
@@ -25,6 +27,11 @@ type Funcionario = {
 };
 
 function Funcionarios() {
+  const { sucesso, erro } = useToast();
+  const { usuario: usuarioLogado } = useAuth();
+  const [errosCriar, setErrosCriar] = useState<Record<string, string>>({});
+  const [errosEditar, setErrosEditar] = useState<Record<string, string>>({});
+
   const [busca, setBusca] = useState("");
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
   const [selecionada, setSelecionada] = useState<Funcionario | null>(null);
@@ -103,7 +110,33 @@ function Funcionarios() {
     modalEditar.abrir();
   }
 
+  function validarCriar() {
+    const erros: Record<string, string> = {};
+    if (!nome.trim()) erros.nome = "Nome é obrigatório";
+    if (!telefone.trim()) erros.telefone = "Telefone é obrigatório";
+    else if (!telefoneDisponivel) erros.telefone = "Telefone já cadastrado";
+    if (!endereco.trim()) erros.endereco = "Endereço é obrigatório";
+    if (!usuario.trim()) erros.usuario = "Usuário é obrigatório";
+    else if (!usuarioDisponivel) erros.usuario = "Usuário já existe";
+    if (!senha.trim()) erros.senha = "Senha é obrigatória";
+    else if (senha.length < 6) erros.senha = "Mínimo 6 caracteres";
+    if (senha !== confirmar) erros.confirmar = "As senhas não coincidem";
+    if (!role.trim()) erros.role = "Cargo é obrigatório";
+    setErrosCriar(erros);
+    return Object.keys(erros).length === 0;
+  }
+
+  function validarEditar() {
+    const erros: Record<string, string> = {};
+    if (!nomeEditar.trim()) erros.nome = "Nome é obrigatório";
+    if (!telefoneEditar.trim()) erros.telefone = "Telefone é obrigatório";
+    if (!enderecoEditar.trim()) erros.endereco = "Endereço é obrigatório";
+    setErrosEditar(erros);
+    return Object.keys(erros).length === 0;
+  }
+
   async function handleCriar() {
+    if (!validarCriar()) return;
     try {
       const res = await api.post("/funcionarios", { nome, telefone, endereco, usuario, role, senha, etapas: [] });
       setFuncionarios((prev) => [...prev, res.data]);
@@ -114,13 +147,15 @@ function Funcionarios() {
       setUsuario("");
       setRole("");
       setSenha("");
+      sucesso("Funcionário criado com sucesso!");
     } catch (error) {
       console.error("Erro ao criar funcionário:", error);
+      erro("Erro ao criar funcionário");
     }
   }
 
   async function handleAtualizar() {
-    if (!selecionada) return;
+    if (!selecionada || !validarEditar()) return;
     try {
       const res = await api.put(`/funcionarios/${selecionada.id}`, {
         nome: nomeEditar,
@@ -132,8 +167,10 @@ function Funcionarios() {
       setFuncionarios((prev) => prev.map((f) => (f.id === selecionada.id ? res.data : f)));
       setSelecionada(res.data);
       modalEditar.fechar();
+      sucesso("Funcionário atualizado!");
     } catch (error) {
       console.error("Erro ao atualizar funcionário:", error);
+      erro("Erro ao atualizar funcionário");
     }
   }
 
@@ -142,12 +179,16 @@ function Funcionarios() {
       await api.delete(`/funcionarios/${id}`);
       setFuncionarios((prev) => prev.filter((f) => f.id !== id));
       setSelecionada(null);
+      sucesso("Funcionário removido!");
     } catch (error) {
       console.error("Erro ao deletar funcionário:", error);
+      erro("Erro ao remover funcionário");
     }
   }
 
-  const funcionariosFiltrados = funcionarios.filter((f) => f.nome.toLowerCase().includes(busca.toLowerCase()));
+  const funcionariosFiltrados = funcionarios
+    .filter((f) => f.id !== usuarioLogado?.id)
+    .filter((f) => f.nome.toLowerCase().includes(busca.toLowerCase()));
   const senhasNaoBatem = confirmar && senha !== confirmar;
 
   return (
@@ -179,7 +220,7 @@ function Funcionarios() {
                 required={true}
               />
 
-              {!telefoneDisponivel && <p className="text-red-500 text-sm">Telefone já cadastrado.</p>}
+              {errosCriar.telefone && <span className="text-xs text-red-500">{errosCriar.telefone}</span>}
 
               <InputTexto
                 label="Endereço"
@@ -200,7 +241,7 @@ function Funcionarios() {
                 required={true}
               />
 
-              {!usuarioDisponivel && <p className="text-red-500 text-sm">Usuário já existe.</p>}
+              {errosCriar.usuario && <span className="text-xs text-red-500">{errosCriar.usuario}</span>}
 
               <InputSenha
                 label="Senha"
@@ -220,6 +261,7 @@ function Funcionarios() {
                 onChange={(e) => setConfirmar(e.target.value)}
               />
 
+              {errosCriar.confirmar && <span className="text-xs text-red-500">{errosCriar.confirmar}</span>}
               {senhasNaoBatem && <p className="text-red-500 text-sm">As senhas não coincidem.</p>}
 
               <InputSelect
@@ -338,7 +380,6 @@ function Funcionarios() {
                     { label: "Endereço", valor: selecionada.endereco },
                     { label: "Usuário", valor: selecionada.usuario },
                     { label: "Cargo", valor: selecionada.role },
-                    { label: "Senha", valor: selecionada.senha },
                   ].map(({ label, valor }) => (
                     <div
                       key={label}

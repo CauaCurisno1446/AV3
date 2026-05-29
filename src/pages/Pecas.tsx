@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useToast } from "../contexts/ToastContext";
 import { SquarePen, Trash2, MousePointerClick } from "lucide-react";
 
 import { useModal } from "../hooks/useModal";
@@ -28,6 +29,10 @@ type Aeronave = {
 };
 
 function Pecas() {
+  const { sucesso, erro } = useToast();
+  // validação
+  const [errosCriar, setErrosCriar] = useState<Record<string, string>>({});
+  const [errosEditar, setErrosEditar] = useState<Record<string, string>>({});
   const [busca, setBusca] = useState("");
   const [pecas, setPecas] = useState<Peca[]>([]);
   const [selecionada, setSelecionada] = useState<Peca | null>(null);
@@ -73,7 +78,24 @@ function Pecas() {
     modalEditar.abrir();
   }
 
+  function validarCriar() {
+    const erros: Record<string, string> = {};
+    if (!nome.trim()) erros.nome = "Nome é obrigatório";
+    if (!fornecedor.trim()) erros.fornecedor = "Fornecedor é obrigatório";
+    setErrosCriar(erros);
+    return Object.keys(erros).length === 0;
+  }
+
+  function validarEditar() {
+    const erros: Record<string, string> = {};
+    if (!nomeEditar.trim()) erros.nome = "Nome é obrigatório";
+    if (!fornecedorEditar.trim()) erros.fornecedor = "Fornecedor é obrigatório";
+    setErrosEditar(erros);
+    return Object.keys(erros).length === 0;
+  }
+
   async function handleCriar() {
+    if (!validarCriar()) return;
     try {
       const res = await api.post("/pecas", { nome, tipo, fornecedor, status, aeronaves: aeronavesSelecionadas });
       setPecas((prev) => [...prev, res.data]);
@@ -82,13 +104,15 @@ function Pecas() {
       setTipo("Importada");
       setFornecedor("");
       setStatus("Pronta");
+      sucesso("Peça criada com sucesso!");
     } catch (error) {
       console.error("Erro ao criar peça:", error);
+      erro("Erro ao criar peça");
     }
   }
 
   async function handleAtualizar() {
-    if (!selecionada) return;
+    if (!selecionada || !validarEditar()) return;
     try {
       const res = await api.put(`/pecas/${selecionada.id}`, {
         nome: nomeEditar,
@@ -100,8 +124,10 @@ function Pecas() {
       setPecas((prev) => prev.map((p) => (p.id === selecionada.id ? res.data : p)));
       setSelecionada(res.data);
       modalEditar.fechar();
+      sucesso("Peça atualizada!");
     } catch (error) {
       console.error("Erro ao atualizar peça:", error);
+      erro("Erro ao atualizar peça");
     }
   }
 
@@ -110,8 +136,10 @@ function Pecas() {
       await api.delete(`/pecas/${id}`);
       setPecas((prev) => prev.filter((p) => p.id !== id));
       setSelecionada(null);
+      sucesso("Peça removida!");
     } catch (error) {
       console.error("Erro ao deletar peça:", error);
+      erro("Erro ao remover peça");
     }
   }
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useToast } from "../contexts/ToastContext";
 import { SquarePen, Trash2, MousePointerClick } from "lucide-react";
 import etpFoto from "../assets/img/etapas.jpg";
 
@@ -33,6 +34,10 @@ type Etapa = {
 };
 
 function Etapas() {
+  const { sucesso, erro } = useToast();
+  const [errosCriar, setErrosCriar] = useState<Record<string, string>>({});
+  const [errosEditar, setErrosEditar] = useState<Record<string, string>>({});
+
   const [busca, setBusca] = useState("");
   const [etapas, setEtapas] = useState<Etapa[]>([]);
   const [selecionada, setSelecionada] = useState<Etapa | null>(null);
@@ -85,44 +90,55 @@ function Etapas() {
     modalEditar.abrir();
   }
 
+  function validarCriar() {
+    const erros: Record<string, string> = {};
+    if (!nome.trim()) erros.nome = "Nome é obrigatório";
+    if (!prazo) erros.prazo = "Prazo é obrigatório";
+    if (!aeronaveSelecionada) erros.aeronave = "Selecione uma aeronave";
+    setErrosCriar(erros);
+    return Object.keys(erros).length === 0;
+  }
+
+  function validarEditar() {
+    const erros: Record<string, string> = {};
+    if (!nomeEditar.trim()) erros.nome = "Nome é obrigatório";
+    if (!prazoEditar) erros.prazo = "Prazo é obrigatório";
+    setErrosEditar(erros);
+    return Object.keys(erros).length === 0;
+  }
+
   async function handleCriar() {
+    if (!validarCriar()) return;
     try {
       const res = await api.post("/etapas", {
-        nome,
-        prazo,
-        status,
+        nome, prazo, status,
         funcionarios: funcionariosSelecionados,
         aeronave: aeronaveSelecionada,
       });
       setEtapas((prev) => [...prev, res.data]);
       modalCriar.fechar();
-      setNome("");
-      setPrazo("");
-      setStatus("EM_ANDAMENTO");
-      setFuncionariosSelecionados([]);
-      setAeronaveSelecionada(0);
+      setNome(""); setPrazo(""); setStatus("EM_ANDAMENTO"); setFuncionariosSelecionados([]); setAeronaveSelecionada(0);
+      sucesso("Etapa criada com sucesso!");
     } catch (error) {
       console.error("Erro ao criar etapa:", error);
+      erro("Erro ao criar etapa");
     }
   }
 
   async function handleAtualizar() {
-    if (!selecionada) return;
-
+    if (!selecionada || !validarEditar()) return;
     try {
       const res = await api.put(`/etapas/${selecionada.id}`, {
-        nome: nomeEditar,
-        prazo: prazoEditar,
-        status: statusEditar,
-        funcionarios: funcionariosEditar,
-        aeronave: aeronaveEditar,
+        nome: nomeEditar, prazo: prazoEditar, status: statusEditar,
+        funcionarios: funcionariosEditar, aeronave: aeronaveEditar,
       });
-
       setEtapas((prev) => prev.map((e) => (e.id === selecionada.id ? res.data : e)));
       setSelecionada(res.data);
       modalEditar.fechar();
+      sucesso("Etapa atualizada!");
     } catch (error) {
       console.error("Erro ao atualizar etapa:", error);
+      erro("Erro ao atualizar etapa");
     }
   }
 
@@ -131,8 +147,10 @@ function Etapas() {
       await api.delete(`/etapas/${id}`);
       setEtapas((prev) => prev.filter((e) => e.id !== id));
       setSelecionada(null);
+      sucesso("Etapa removida!");
     } catch (error) {
       console.error("Erro ao deletar etapa:", error);
+      erro("Erro ao remover etapa");
     }
   }
 
