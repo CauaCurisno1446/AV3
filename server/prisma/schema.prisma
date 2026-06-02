@@ -44,7 +44,7 @@ model Etapa {
   id             Int       @id @default(autoincrement())
   nome           String
   prazo          DateTime
-  status         String    @default("EM_ANDAMENTO")
+  status         String    @default("Em andamento")
   funcionarios   User[]    @relation("EtapaFuncionarios")
   aeronaveid     Int
   aeronave       Aeronave  @relation(fields: [aeronaveid], references: [id])

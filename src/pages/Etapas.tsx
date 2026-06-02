@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useToast } from "../contexts/ToastContext";
-import { SquarePen, Trash2, MousePointerClick } from "lucide-react";
+import { SquarePen, Trash2, MousePointerClick, ChevronDown } from "lucide-react";
 import etpFoto from "../assets/img/etapas.jpg";
 
 import { useModal } from "../hooks/useModal";
@@ -47,18 +47,20 @@ function Etapas() {
 
   const [funcionariosDisponiveis, setFuncionariosDisponiveis] = useState<Funcionario[]>([]);
   const [aeronavesDisponiveis, setAeronavesDisponiveis] = useState<Aeronave[]>([]);
+  const [aeronavesFiltro, setAeronavesFiltro] = useState<number[]>([]);
+  const [filtroAberto, setFiltroAberto] = useState(false);
 
   // criar
   const [nome, setNome] = useState("");
   const [prazo, setPrazo] = useState("");
-  const [status, setStatus] = useState("EM_ANDAMENTO");
+  const [status, setStatus] = useState("Em andamento");
   const [funcionariosSelecionados, setFuncionariosSelecionados] = useState<number[]>([]);
   const [aeronaveSelecionada, setAeronaveSelecionada] = useState<number>(0);
 
   // editar
   const [nomeEditar, setNomeEditar] = useState("");
   const [prazoEditar, setPrazoEditar] = useState("");
-  const [statusEditar, setStatusEditar] = useState("EM_ANDAMENTO");
+  const [statusEditar, setStatusEditar] = useState("Em andamento");
   const [funcionariosEditar, setFuncionariosEditar] = useState<number[]>([]);
   const [aeronaveEditar, setAeronaveEditar] = useState<number>(0);
 
@@ -111,17 +113,23 @@ function Etapas() {
     if (!validarCriar()) return;
     try {
       const res = await api.post("/etapas", {
-        nome, prazo, status,
+        nome,
+        prazo,
+        status,
         funcionarios: funcionariosSelecionados,
         aeronave: aeronaveSelecionada,
       });
       setEtapas((prev) => [...prev, res.data]);
       modalCriar.fechar();
-      setNome(""); setPrazo(""); setStatus("EM_ANDAMENTO"); setFuncionariosSelecionados([]); setAeronaveSelecionada(0);
+      setNome("");
+      setPrazo("");
+      setStatus("Em andamento");
+      setFuncionariosSelecionados([]);
+      setAeronaveSelecionada(0);
       sucesso("Etapa criada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao criar etapa:", error);
-      erro("Erro ao criar etapa");
+    } catch (error: any) {
+      const mensagem = error?.response?.data?.error || "Erro ao criar etapa";
+      erro(mensagem);
     }
   }
 
@@ -129,8 +137,11 @@ function Etapas() {
     if (!selecionada || !validarEditar()) return;
     try {
       const res = await api.put(`/etapas/${selecionada.id}`, {
-        nome: nomeEditar, prazo: prazoEditar, status: statusEditar,
-        funcionarios: funcionariosEditar, aeronave: aeronaveEditar,
+        nome: nomeEditar,
+        prazo: prazoEditar,
+        status: statusEditar,
+        funcionarios: funcionariosEditar,
+        aeronave: aeronaveEditar,
       });
       setEtapas((prev) => prev.map((e) => (e.id === selecionada.id ? res.data : e)));
       setSelecionada(res.data);
@@ -154,7 +165,11 @@ function Etapas() {
     }
   }
 
-  const etapasFiltradas = etapas.filter((e) => e.nome.toLowerCase().includes(busca.toLowerCase()));
+  const etapasFiltradas = etapas.filter((e) => {
+    const matchBusca = e.nome.toLowerCase().includes(busca.toLowerCase());
+    const matchAeronave = aeronavesFiltro.length === 0 || aeronavesFiltro.includes(e.aeronave.id);
+    return matchBusca && matchAeronave;
+  });
 
   return (
     <div className="min-h-screen bg-[var(--fundo)] text-slate-800 font-sans">
@@ -187,14 +202,14 @@ function Etapas() {
                 required={true}
               />
 
-              <InputSelect
+              {/* <InputSelect
                 label="Status"
                 options={["Em andamento", "Concluída", "Cancelada"]}
                 name="status"
                 id="status"
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-              />
+              /> */}
 
               <InputCheckBox
                 label="Funcionários"
@@ -326,6 +341,44 @@ function Etapas() {
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 flex flex-col gap-6">
             <PesquisaCriar placeholder="Buscar etapa..." busca={busca} setBusca={setBusca} onCriar={modalCriar.abrir} />
+            {aeronavesDisponiveis.length > 0 && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setFiltroAberto((prev) => !prev)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                  <span>Filtrar por aeronave</span>
+                  <ChevronDown
+                    size={16}
+                    className={`text-slate-400 transition-transform duration-200 ${filtroAberto ? "rotate-180" : ""}`}
+                  />
+                </button>
+
+                {filtroAberto && (
+                  <div className="px-4 pb-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-slate-100 pt-3">
+                    {aeronavesDisponiveis.map((aeronave) => (
+                      <label
+                        key={aeronave.id}
+                        className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="accent-[var(--azul-escuro)]"
+                          checked={aeronavesFiltro.includes(aeronave.id)}
+                          onChange={() => {
+                            setAeronavesFiltro((prev) =>
+                              prev.includes(aeronave.id)
+                                ? prev.filter((id) => id !== aeronave.id)
+                                : [...prev, aeronave.id],
+                            );
+                          }}
+                        />
+                        {aeronave.modelo}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
             <Lista
               itens={etapasFiltradas}
               itemSelecionado={selecionada}

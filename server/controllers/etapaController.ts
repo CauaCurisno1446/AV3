@@ -22,6 +22,19 @@ export async function criarEtapa(req: Request, res: Response) {
   try {
     const { nome, prazo, status, funcionarios, aeronave } = req.body;
 
+    const etapaAtiva = await prisma.etapa.findFirst({
+      where: {
+        aeronaveid: Number(aeronave),
+        status: "Em andamento",
+      },
+    });
+
+    if (etapaAtiva) {
+      return res.status(400).json({
+        error: `A aeronave já possui a etapa "${etapaAtiva.nome}" em andamento. Conclua-a antes de criar uma nova.`,
+      });
+    }
+
     const etapa = await prisma.etapa.create({
       data: {
         nome,
