@@ -52,6 +52,7 @@ export async function atualizarAeronave(req: Request<{ id: string }>, res: Respo
         id: parseInt(req.params.id),
       },
       data: req.body,
+      include: { etapas: true, pecas: true, testes: true },
     });
     res.json(aeronave);
   } catch (error) {
@@ -59,9 +60,38 @@ export async function atualizarAeronave(req: Request<{ id: string }>, res: Respo
     res.status(500).json({ error: "Erro ao atualizar aeronave" });
   }
 }
+
+export async function registrarTestes(req: Request<{ id: string }>, res: Response) {
+  try {
+    const { aerodinamico, hidraulico, eletrico } = req.body;
+    const aeronaveid = parseInt(req.params.id);
+
+    const teste = await prisma.testes.upsert({
+      where: { aeronaveid },
+      update: {
+        aerodinamico: aerodinamico.toUpperCase(),
+        hidraulico: hidraulico.toUpperCase(),
+        eletrico: eletrico.toUpperCase(),
+      },
+      create: {
+        aerodinamico: aerodinamico.toUpperCase(),
+        hidraulico: hidraulico.toUpperCase(),
+        eletrico: eletrico.toUpperCase(),
+        aeronaveid,
+      },
+    });
+
+    res.json(teste);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro ao registrar testes" });
+  }
+}
+
 export default {
   listarAeronaves,
   criarAeronave,
   deletarAeronave,
   atualizarAeronave,
+  registrarTestes,
 };

@@ -35,7 +35,7 @@ model Testes {
   aerodinamico   String    @default("REPROVADO")
   eletrico       String    @default("REPROVADO")
   hidraulico     String    @default("REPROVADO")
-  aeronaveid     Int
+  aeronaveid     Int       @unique
   aeronave       Aeronave  @relation(fields: [aeronaveid], references: [id])
   createdAt      DateTime  @default(now())
 }
