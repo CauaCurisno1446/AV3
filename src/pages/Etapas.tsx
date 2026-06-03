@@ -393,27 +393,28 @@ function Etapas() {
             {selecionada ? (
               <div className="flex flex-col h-full bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
                 <div className="pb-5 border-b border-slate-100">
-                  <h2 className="text-2xl font-bold text-slate-800">{selecionada.nome}</h2>
-                  <p className="text-sm text-slate-500 mt-2">Detalhes da etapa</p>
+                  <h2 className="text-2xl font-bold text-slate-800 tracking-tight leading-none">{selecionada.nome}</h2>
+                  <p className="text-sm font-medium text-slate-400 mt-1.5 uppercase tracking-wider">
+                    Detalhes da etapa
+                  </p>
                 </div>
-                <div className="py-6 flex flex-col gap-4">
-                  <div>
-                    <strong>Status:</strong> {selecionada.status}
-                  </div>
-                  <div>
-                    <strong>Prazo:</strong> {new Date(selecionada.prazo).toLocaleDateString()}
-                  </div>
-                  <div>
-                    <strong>Aeronave:</strong> {selecionada.aeronave?.modelo}
-                  </div>
-                  <div>
-                    <strong>Funcionários:</strong>
-                    <ul className="list-disc ml-5 mt-2">
-                      {selecionada.funcionarios.map((f) => (
-                        <li key={f.id}>{f.nome}</li>
-                      ))}
-                    </ul>
-                  </div>
+
+                <div className="py-6 flex-1 flex flex-col gap-3">
+                  {[
+                    { label: "Status", valor: selecionada.status },
+                    { label: "Prazo", valor: new Date(selecionada.prazo).toLocaleDateString() },
+                    { label: "Aeronave", valor: selecionada.aeronave?.modelo },
+                    { label: "Funcionários", valor: selecionada.funcionarios.map((f) => f.nome).join(", ") },
+                  ].map(({ label, valor }) => (
+                    <div
+                      key={label}
+                      className="flex flex-col gap-0.5 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3">
+                      <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                        {label}
+                      </span>
+                      <span className="text-sm font-medium text-slate-700">{valor}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="pt-4 flex items-center gap-3 mt-auto">

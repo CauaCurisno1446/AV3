@@ -342,7 +342,9 @@ function Aeronaves() {
                   <h2 className="text-2xl font-bold text-slate-800 tracking-tight leading-none">
                     {selecionada.modelo}
                   </h2>
-                  <p className="text-sm font-medium text-slate-500 mt-2">Detalhes do registro</p>
+                  <p className="text-sm font-medium text-slate-400 mt-1.5 uppercase tracking-wider">
+                    Detalhes da aeronave
+                  </p>
                 </div>
 
                 <div className="py-6 flex-1 flex flex-col gap-3">

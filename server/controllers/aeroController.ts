@@ -33,12 +33,19 @@ export async function criarAeronave(req: Request, res: Response) {
 
 export async function deletarAeronave(req: Request<{ id: string }>, res: Response) {
   try {
-    await prisma.aeronave.delete({
-      where: {
-        id: parseInt(req.params.id),
-      },
-    });
-    res.json({ mensagem: `Aeronave ${req.params.id} deletada` });
+    const id = parseInt(req.params.id);
+
+    await prisma.$transaction([
+      prisma.testes.deleteMany({ where: { aeronaveid: id } }),
+      prisma.etapa.deleteMany({ where: { aeronaveid: id } }),
+      prisma.aeronave.update({
+        where: { id },
+        data: { pecas: { set: [] } },
+      }),
+      prisma.aeronave.delete({ where: { id } }),
+    ]);
+
+    res.json({ mensagem: `Aeronave ${id} deletada` });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Erro ao deletar aeronave" });

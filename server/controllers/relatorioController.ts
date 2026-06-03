@@ -25,7 +25,7 @@ export async function gerarRelatorio(req: Request<{ id: string }>, res: Response
     res.setHeader("Content-Disposition", `attachment; filename=relatorio-${aeronave.modelo.replace(/\s+/g, "_")}.pdf`);
     doc.pipe(res);
 
-    // ── Cabeçalho ──
+    //Cabeçalho
     doc.fontSize(22).font("Helvetica-Bold").text("Relatório de Aeronave", { align: "center" });
     doc.moveDown(0.5);
     doc
@@ -37,14 +37,14 @@ export async function gerarRelatorio(req: Request<{ id: string }>, res: Response
 
     linha(doc);
 
-    // ── Dados gerais ──
+    //Dados gerais
     secao(doc, "Dados Gerais");
     campo(doc, "Modelo", aeronave.modelo);
     campo(doc, "Capacidade", `${aeronave.capacidade} passageiros`);
     campo(doc, "Alcance", `${aeronave.alcance} km`);
     doc.moveDown(1);
 
-    // ── Testes ──
+    //Testes
     secao(doc, "Testes");
     if (aeronave.testes.length === 0) {
       doc.fontSize(10).fillColor("#888888").text("Nenhum teste registrado.");
@@ -64,7 +64,7 @@ export async function gerarRelatorio(req: Request<{ id: string }>, res: Response
     }
     doc.moveDown(1);
 
-    // ── Etapas ──
+    //Etapas
     secao(doc, "Etapas");
     if (aeronave.etapas.length === 0) {
       doc.fontSize(10).fillColor("#888888").text("Nenhuma etapa registrada.");
@@ -80,7 +80,7 @@ export async function gerarRelatorio(req: Request<{ id: string }>, res: Response
     }
     doc.moveDown(1);
 
-    // ── Peças ──
+    //Peças
     secao(doc, "Peças");
     if (aeronave.pecas.length === 0) {
       doc.fontSize(10).fillColor("#888888").text("Nenhuma peça registrada.");

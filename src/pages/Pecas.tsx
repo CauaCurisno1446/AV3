@@ -302,9 +302,7 @@ function Pecas() {
               <div className="flex flex-col h-full bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
                 <div className="pb-5 border-b border-slate-100">
                   <h2 className="text-2xl font-bold text-slate-800 tracking-tight leading-none">{selecionada.nome}</h2>
-                  <p className="text-sm font-medium text-slate-400 mt-1.5 uppercase tracking-wider">
-                    Detalhes do registro
-                  </p>
+                  <p className="text-sm font-medium text-slate-400 mt-1.5 uppercase tracking-wider">Detalhes da peça</p>
                 </div>
 
                 <div className="py-6 flex-1 flex flex-col gap-3">
