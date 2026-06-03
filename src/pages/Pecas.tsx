@@ -13,6 +13,7 @@ import InputCheckBox from "../components/InputCheckBox";
 import TituloPagina from "../components/TituloPagina";
 import PesquisaCriar from "../components/PesquisaCriar";
 import { Lista } from "../components/Lista";
+import ModalConfirmar from "../components/modalConfirmar";
 
 type Peca = {
   id: number;
@@ -53,6 +54,8 @@ function Pecas() {
   const [fornecedorEditar, setFornecedorEditar] = useState("");
   const [statusEditar, setStatusEditar] = useState("Pronta");
   const [aeronavesEditar, setAeronavesEditar] = useState<number[]>([]);
+
+  const [idParaDeletar, setIdParaDeletar] = useState<number | null>(null);
 
   useEffect(() => {
     api.get("/pecas").then((res) => {
@@ -276,6 +279,17 @@ function Pecas() {
         </Modal>
       )}
 
+      {idParaDeletar !== null && (
+        <ModalConfirmar
+          mensagem="Tem certeza que deseja remover este item? Esta ação não pode ser desfeita."
+          onConfirmar={async () => {
+            await handleDeletar(idParaDeletar);
+            setIdParaDeletar(null);
+          }}
+          onCancelar={() => setIdParaDeletar(null)}
+        />
+      )}
+
       <main className="max-w-6xl mx-auto p-6">
         <TituloPagina
           titulo="Peças"
@@ -329,7 +343,7 @@ function Pecas() {
                     Editar
                   </button>
                   <button
-                    onClick={() => handleDeletar(selecionada.id)}
+                    onClick={() => setIdParaDeletar(selecionada.id)}
                     className="flex items-center justify-center w-11 h-11 text-slate-400 bg-transparent hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors cursor-pointer shrink-0">
                     <Trash2 size={18} strokeWidth={2.5} />
                   </button>

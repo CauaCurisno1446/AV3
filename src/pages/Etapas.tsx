@@ -13,6 +13,7 @@ import InputCheckBox from "../components/InputCheckBox";
 import TituloPagina from "../components/TituloPagina";
 import PesquisaCriar from "../components/PesquisaCriar";
 import { Lista } from "../components/Lista";
+import ModalConfirmar from "../components/modalConfirmar";
 
 type Funcionario = {
   id: number;
@@ -63,6 +64,8 @@ function Etapas() {
   const [statusEditar, setStatusEditar] = useState("Em andamento");
   const [funcionariosEditar, setFuncionariosEditar] = useState<number[]>([]);
   const [aeronaveEditar, setAeronaveEditar] = useState<number>(0);
+
+  const [idParaDeletar, setIdParaDeletar] = useState<number | null>(null);
 
   useEffect(() => {
     api.get("/etapas").then((res) => {
@@ -330,6 +333,17 @@ function Etapas() {
         </Modal>
       )}
 
+      {idParaDeletar !== null && (
+        <ModalConfirmar
+          mensagem="Tem certeza que deseja remover este item? Esta ação não pode ser desfeita."
+          onConfirmar={async () => {
+            await handleDeletar(idParaDeletar);
+            setIdParaDeletar(null);
+          }}
+          onCancelar={() => setIdParaDeletar(null)}
+        />
+      )}
+
       <main className="max-w-6xl mx-auto p-6">
         <TituloPagina
           titulo="Etapas"
@@ -426,7 +440,7 @@ function Etapas() {
                   </button>
 
                   <button
-                    onClick={() => handleDeletar(selecionada.id)}
+                    onClick={() => setIdParaDeletar(selecionada.id)}
                     className="flex items-center justify-center w-11 h-11 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-lg">
                     <Trash2 size={18} />
                   </button>
