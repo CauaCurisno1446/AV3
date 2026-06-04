@@ -1,0 +1,7 @@
+Para cadastrar um admin inicial, basta rodar o comando "node seedadmin.js". Após rodar esse comando, o terminal deve responder se o usuário foi cadastrado com sucesso.
+OBS: Esse comando só funciona com o banco de dados vazio, para garantir que o usuário criado seja o primeiro e tenha todas as permissões de administrador.
+O código foi pensado para o administrador inicial poder ter o primeiro acesso e não deve ser utilizado posteriormente para outros usuários.
+
+Dados base para primeiro acesso:
+usuário: batman
+senha: admin123
