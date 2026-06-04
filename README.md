@@ -45,7 +45,7 @@ Para rodar o **Aerocode** localmente, siga os passos abaixo:
    ```bash
    cd AV3/server/
    node seedadmin.js
-   (Dados: usuário = admin, senha = admin123)
+   (Dados: usuário = batman, senha = admin123)
    ```
 7. **Inicie o servidor**:
    ```bash
