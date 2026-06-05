@@ -59,6 +59,9 @@ function Funcionarios() {
   const [usuarioEditar, setUsuarioEditar] = useState("");
   const [roleEditar, setRoleEditar] = useState("");
 
+  const [usuarioEditarDisponivel, setUsuarioEditarDisponivel] = useState(true);
+  const [telefoneEditarDisponivel, setTelefoneEditarDisponivel] = useState(true);
+
   const [idParaDeletar, setIdParaDeletar] = useState<number | null>(null);
 
   useEffect(() => {
@@ -103,6 +106,28 @@ function Funcionarios() {
     return () => clearTimeout(timeout);
   }, [telefone]);
 
+  useEffect(() => {
+    if (!usuarioEditar || usuarioEditar === selecionada?.usuario) return;
+
+    const timeout = setTimeout(async () => {
+      const res = await api.post("/funcionarios/validar", { usuario: usuarioEditar });
+      setUsuarioEditarDisponivel(res.data.usuarioDisponivel);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [usuarioEditar]);
+
+  useEffect(() => {
+    if (!telefoneEditar || telefoneEditar === selecionada?.telefone) return;
+
+    const timeout = setTimeout(async () => {
+      const res = await api.post("/funcionarios/validar", { telefone: telefoneEditar });
+      setTelefoneEditarDisponivel(res.data.telefoneDisponivel);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [telefoneEditar]);
+
   function abrirModalEditar() {
     if (!selecionada) return;
     setNomeEditar(selecionada.nome);
@@ -110,6 +135,8 @@ function Funcionarios() {
     setEnderecoEditar(selecionada.endereco);
     setUsuarioEditar(selecionada.usuario);
     setRoleEditar(selecionada.role || "");
+    setUsuarioEditarDisponivel(true);
+    setTelefoneEditarDisponivel(true);
     modalEditar.abrir();
   }
 
@@ -133,7 +160,10 @@ function Funcionarios() {
     const erros: Record<string, string> = {};
     if (!nomeEditar.trim()) erros.nome = "Nome é obrigatório";
     if (!telefoneEditar.trim()) erros.telefone = "Telefone é obrigatório";
+    else if (!telefoneEditarDisponivel) erros.telefone = "Telefone já cadastrado";
     if (!enderecoEditar.trim()) erros.endereco = "Endereço é obrigatório";
+    if (!usuarioEditar.trim()) erros.usuario = "Usuário é obrigatório";
+    else if (!usuarioEditarDisponivel) erros.usuario = "Usuário já existe";
     setErrosEditar(erros);
     return Object.keys(erros).length === 0;
   }
@@ -221,9 +251,12 @@ function Funcionarios() {
                 value={telefone}
                 onChange={(e) => setTelefone(e.target.value)}
                 required={true}
+                maxLength={11}
               />
 
-              {errosCriar.telefone && <span className="text-xs text-red-500">{errosCriar.telefone}</span>}
+              {(errosCriar.telefone || (!telefoneDisponivel && telefone)) && (
+                <span className="text-xs text-red-500">{errosCriar.telefone || "Telefone já cadastrado"}</span>
+              )}
 
               <InputTexto
                 label="Endereço"
@@ -244,7 +277,9 @@ function Funcionarios() {
                 required={true}
               />
 
-              {errosCriar.usuario && <span className="text-xs text-red-500">{errosCriar.usuario}</span>}
+              {(errosCriar.usuario || (!usuarioDisponivel && usuario)) && (
+                <span className="text-xs text-red-500">{errosCriar.usuario || "Usuário já existe"}</span>
+              )}
 
               <InputSenha
                 label="Senha"
@@ -310,7 +345,13 @@ function Funcionarios() {
               id="telefoneEditar"
               value={telefoneEditar}
               onChange={(e) => setTelefoneEditar(e.target.value)}
+              maxLength={11}
             />
+
+            {(errosEditar.telefone || (!telefoneEditarDisponivel && telefoneEditar !== selecionada?.telefone)) && (
+              <span className="text-xs text-red-500">{errosEditar.telefone || "Telefone já cadastrado"}</span>
+            )}
+
             <InputTexto
               label="Endereço"
               placeholder="Ex: Rua dos Astronautas"

@@ -165,6 +165,7 @@ function Usuario() {
                 id="telEditar"
                 value={telEditar}
                 onChange={(e) => setTelEditar(e.target.value)}
+                maxLength={11}
               />
               {errosEditar.telefone && <span className="text-xs text-red-500">{errosEditar.telefone}</span>}
             </div>
